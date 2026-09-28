@@ -3,43 +3,31 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <cmath>
+
 
 using namespace std;
 
-// configuracion 
+
+using namespace std;
 
 const int WIDTH = 800;
 const int HEIGHT = 800;
-
 const int GRID_SIZE = 20;
 
-// estructura para la celdaaa
 struct Celda
 {
     int x;
     int y;
 };
 
-
-// celdas que Bresenham va a pintar
 vector<Celda> celdasPintadas;
 
+bool esperandoCentro = true;
+bool esperandoRadio = false;
 
-// Estado
-bool esperandoInicio = true;
-bool esperandoFinal = false;
-
-
-// P inicio
-int inicioX = 0;
-int inicioY = 0;
-
-// P final
-int finalX = 0;
-int finalY = 0;
-
-// shaders
+int centroX = 0;
+int centroY = 0;
+int radio = 0;
 
 const char* vertexShaderSource = R"(
 #version 330 core
@@ -51,7 +39,6 @@ void main()
     gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
 }
 )";
-
 
 const char* fragmentShaderSource = R"(
 #version 330 core
@@ -65,8 +52,6 @@ void main()
     FragColor = vec4(color, 1.0);
 }
 )";
-
-// crear el shader
 
 unsigned int crearShader(unsigned int tipo, const char* codigo)
 {
@@ -96,9 +81,6 @@ unsigned int crearShader(unsigned int tipo, const char* codigo)
 
     return shader;
 }
-
-
-// crear el programa
 
 unsigned int crearPrograma()
 {
@@ -158,21 +140,13 @@ unsigned int crearPrograma()
     return programa;
 }
 
-
-// pintar una celda
-
 void pintarCasilla(int x, int y)
 {
-    // verif límites
-
     if (x < 1 || x > GRID_SIZE ||
         y < 1 || y > GRID_SIZE)
     {
         return;
     }
-
-
-	// no repetir celdas
 
     for (const Celda& celda : celdasPintadas)
     {
@@ -183,9 +157,6 @@ void pintarCasilla(int x, int y)
         }
     }
 
-
-    // Agregar celda
-
     Celda nueva;
 
     nueva.x = x;
@@ -194,144 +165,100 @@ void pintarCasilla(int x, int y)
     celdasPintadas.push_back(nueva);
 }
 
-// Bresenham
+void bresenhamCirculo(int xc, int yc, int radio)
+{
+    int x = 0;
+    int y = radio;
 
-void bresenham(
-    int x0,
-    int y0,
-    int x1,
-    int y1
-)
-    int dx = abs(x1 - x0);
-    int dy = abs(y1 - y0);
+    int d = 3 - 2 * radio;
 
-    int sx;
+    cout << endl;
+    cout << "BRESENHAM CIRCULO" << endl;
 
-    if (x0 < x1)
-        sx = 1;
-    else
-        sx = -1;
+    cout << "Centro: ("
+        << xc
+        << ", "
+        << yc
+        << ")"
+        << endl;
 
-    int sy;
+    cout << "Radio: "
+        << radio
+        << endl;
 
-    if (y0 < y1)
-        sy = 1;
-    else
-        sy = -1;
+    cout << endl;
 
-    int error = dx - dy;
-
-
-    while (true)
+    while (x <= y)
     {
-        // Pintar la celda actual
+        pintarCasilla(xc + x, yc + y);
+        pintarCasilla(xc - x, yc + y);
+        pintarCasilla(xc + x, yc - y);
+        pintarCasilla(xc - x, yc - y);
 
-        pintarCasilla(x0, y0);
+        pintarCasilla(xc + y, yc + x);
+        pintarCasilla(xc - y, yc + x);
+        pintarCasilla(xc + y, yc - x);
+        pintarCasilla(xc - y, yc - x);
 
-
-        // Mostrar
-        cout << "("
-            << x0
-            << ", "
-            << y0
-            << ")"
+        cout << "x = "
+            << x
+            << " | y = "
+            << y
             << endl;
 
-
-        // punto final
-
-        if (x0 == x1 &&
-            y0 == y1)
+        if (d < 0)
         {
-            break;
+            d = d + 4 * x + 6;
+        }
+        else
+        {
+            d = d + 4 * (x - y) + 10;
+            y--;
         }
 
-
-        int e2 = 2 * error;
-
-
-        if (e2 > -dy)
-        {
-            error -= dy;
-            x0 += sx;
-        }
-
-
-        if (e2 < dx)
-        {
-            error += dx;
-            y0 += sy;
-        }
+        x++;
     }
 }
-
-// CREAR GRILLA
 
 vector<float> crearGrilla()
 {
     vector<float> vertices;
 
+    float paso = 2.0f / GRID_SIZE;
 
-    float paso =
-        2.0f / GRID_SIZE;
-
-    // verticales
-
-    for (int i = 0;
-        i <= GRID_SIZE;
-        i++)
+    for (int i = 0; i <= GRID_SIZE; i++)
     {
-        float x =
-            -1.0f + i * paso;
-
+        float x = -1.0f + i * paso;
 
         vertices.push_back(x);
         vertices.push_back(-1.0f);
-
 
         vertices.push_back(x);
         vertices.push_back(1.0f);
     }
 
-
-    // horizontales
-
-    for (int i = 0;
-        i <= GRID_SIZE;
-        i++)
+    for (int i = 0; i <= GRID_SIZE; i++)
     {
-        float y =
-            -1.0f + i * paso;
-
+        float y = -1.0f + i * paso;
 
         vertices.push_back(-1.0f);
         vertices.push_back(y);
 
-
         vertices.push_back(1.0f);
         vertices.push_back(y);
     }
-
 
     return vertices;
 }
-
-// crear cuadros pintados
 
 vector<float> crearCuadrosPintados()
 {
     vector<float> vertices;
 
+    float paso = 2.0f / GRID_SIZE;
 
-    float paso =
-        2.0f / GRID_SIZE;
-
-
-    for (const Celda& celda :
-        celdasPintadas)
+    for (const Celda& celda : celdasPintadas)
     {
-        // Esquina inferior izquierda
-
         float x1 =
             -1.0f +
             (celda.x - 1) * paso;
@@ -340,16 +267,8 @@ vector<float> crearCuadrosPintados()
             -1.0f +
             (celda.y - 1) * paso;
 
-
-        // Esquina superior derecha
-
-        float x2 =
-            x1 + paso;
-
-        float y2 =
-            y1 + paso;
-
-        // primer triangulo
+        float x2 = x1 + paso;
+        float y2 = y1 + paso;
 
         vertices.push_back(x1);
         vertices.push_back(y1);
@@ -359,8 +278,6 @@ vector<float> crearCuadrosPintados()
 
         vertices.push_back(x2);
         vertices.push_back(y2);
-
-		// segundo triangulo
 
         vertices.push_back(x1);
         vertices.push_back(y1);
@@ -372,11 +289,8 @@ vector<float> crearCuadrosPintados()
         vertices.push_back(y2);
     }
 
-
     return vertices;
 }
-
-// mouse a celda
 
 void mouseACelda(
     double mouseX,
@@ -385,38 +299,21 @@ void mouseACelda(
     int& celdaY
 )
 {
-    // Convertir posición del mouse
-    // a coordenadas de la ventana
-
     float pasoPixel =
         (float)WIDTH / GRID_SIZE;
-
-
-    // Columna
 
     celdaX =
         (int)(mouseX / pasoPixel) + 1;
 
-
-    // Fila
-    //
-    // Se invierte Y porque en OpenGL
-    // el origen está abajo,
-    // mientras que el mouse empieza arriba.
-
     celdaY =
         GRID_SIZE -
         (int)(mouseY / pasoPixel);
-
-
-    // Asegurar límites
 
     if (celdaX < 1)
         celdaX = 1;
 
     if (celdaX > GRID_SIZE)
         celdaX = GRID_SIZE;
-
 
     if (celdaY < 1)
         celdaY = 1;
@@ -425,8 +322,6 @@ void mouseACelda(
         celdaY = GRID_SIZE;
 }
 
-// CALLBACK DEL MOUSE
-
 void mouse_callback(
     GLFWwindow* window,
     int button,
@@ -434,17 +329,11 @@ void mouse_callback(
     int mods
 )
 {
-    // Solo nos interesa
-    // el clic izquierdo
-
     if (button != GLFW_MOUSE_BUTTON_LEFT ||
         action != GLFW_PRESS)
     {
         return;
     }
-
-
-    // Obtener posición del mouse
 
     double mouseX;
     double mouseY;
@@ -454,10 +343,6 @@ void mouse_callback(
         &mouseX,
         &mouseY
     );
-
-
-    // Convertir a coordenadas
-    // de la grilla
 
     int x;
     int y;
@@ -469,89 +354,76 @@ void mouse_callback(
         y
     );
 
-    // PRIMER CLIC
-
-    if (esperandoInicio)
+    if (esperandoCentro)
     {
-        inicioX = x;
-        inicioY = y;
+        centroX = x;
+        centroY = y;
 
-        esperandoInicio = false;
-        esperandoFinal = true;
-
+        esperandoCentro = false;
+        esperandoRadio = true;
 
         cout << endl;
-        cout << "Punto inicial: ("
-            << inicioX
+
+        cout << "Centro seleccionado: ("
+            << centroX
             << ", "
-            << inicioY
+            << centroY
             << ")"
             << endl;
 
-        cout << "Ahora selecciona el punto final..."
+        cout << "Selecciona otra casilla "
+            << "para definir el radio."
             << endl;
     }
-
-    // SEGUNDO CLIC
-
-    else if (esperandoFinal)
+    else if (esperandoRadio)
     {
-        finalX = x;
-        finalY = y;
+        double dx = x - centroX;
+        double dy = y - centroY;
 
-        esperandoFinal = false;
+        double distancia =
+            sqrt(
+                dx * dx +
+                dy * dy
+            );
 
+        radio =
+            (int)round(distancia);
 
-        cout << "Punto final: ("
-            << finalX
+        if (radio < 1)
+        {
+            radio = 1;
+        }
+
+        cout << "Punto seleccionado: ("
+            << x
             << ", "
-            << finalY
+            << y
             << ")"
             << endl;
 
-
-        cout << endl;
-        cout << "BRESENHAM:" << endl;
-
-
-        // Limpiar celdas anteriores
+        cout << "Radio calculado: "
+            << radio
+            << endl;
 
         celdasPintadas.clear();
 
-
-        // Ejecutar Bresenham
-
-        bresenham(
-            inicioX,
-            inicioY,
-            finalX,
-            finalY
+        bresenhamCirculo(
+            centroX,
+            centroY,
+            radio
         );
 
+        esperandoCentro = true;
+        esperandoRadio = false;
 
         cout << endl;
-        cout << "Linea terminada."
-            << endl;
-
-        cout << "Haz clic nuevamente "
-            << "para crear otra linea."
-            << endl;
-
-
-        // Preparar nuevo inicio
-
-        esperandoInicio = true;
+        cout << "Circulo terminado." << endl;
+        cout << "Haz clic para crear otro." << endl;
     }
 }
 
-
-// MAIN
-
 int main()
 {
-
-    // INICIAR GLFW
-
     if (!glfwInit())
     {
         cout << "Error iniciando GLFW"
@@ -559,7 +431,6 @@ int main()
 
         return -1;
     }
-
 
     glfwWindowHint(
         GLFW_CONTEXT_VERSION_MAJOR,
@@ -576,17 +447,14 @@ int main()
         GLFW_OPENGL_CORE_PROFILE
     );
 
-    // CREAR VENTANA
-
     GLFWwindow* window =
         glfwCreateWindow(
             WIDTH,
             HEIGHT,
-            "Bresenham - Grilla 20x20",
+            "Bresenham - Circulo 20x20",
             NULL,
             NULL
         );
-
 
     if (window == NULL)
     {
@@ -598,10 +466,7 @@ int main()
         return -1;
     }
 
-
     glfwMakeContextCurrent(window);
-
-    // INICIAR GLAD
 
     if (!gladLoadGLLoader(
         (GLADloadproc)glfwGetProcAddress))
@@ -612,28 +477,19 @@ int main()
         return -1;
     }
 
-    // CALLBACK DEL MOUSE
-
     glfwSetMouseButtonCallback(
         window,
         mouse_callback
     );
 
-    // CREAR SHADER
-
     unsigned int shaderProgram =
         crearPrograma();
-
-    // CREAR GRILLA
 
     vector<float> verticesGrilla =
         crearGrilla();
 
-    // VAO Y VBO DE LA GRILLA
-
     unsigned int VAOGrilla;
     unsigned int VBOGrilla;
-
 
     glGenVertexArrays(
         1,
@@ -645,28 +501,22 @@ int main()
         &VBOGrilla
     );
 
-
     glBindVertexArray(
         VAOGrilla
     );
-
 
     glBindBuffer(
         GL_ARRAY_BUFFER,
         VBOGrilla
     );
 
-
     glBufferData(
         GL_ARRAY_BUFFER,
-        verticesGrilla.size()
-        * sizeof(float),
-
+        verticesGrilla.size() *
+        sizeof(float),
         verticesGrilla.data(),
-
         GL_STATIC_DRAW
     );
-
 
     glVertexAttribPointer(
         0,
@@ -677,10 +527,7 @@ int main()
         (void*)0
     );
 
-
     glEnableVertexAttribArray(0);
-
-    // CONFIGURACIÓN OPENGL
 
     glViewport(
         0,
@@ -689,15 +536,36 @@ int main()
         HEIGHT
     );
 
-
     glLineWidth(2.0f);
-
-    // BUCLE PRINCIPAL
 
     while (!glfwWindowShouldClose(window))
     {
+        if (glfwGetKey(
+            window,
+            GLFW_KEY_ESCAPE
+        ) == GLFW_PRESS)
+        {
+            glfwSetWindowShouldClose(
+                window,
+                true
+            );
+        }
 
-        // FONDO
+        if (glfwGetKey(
+            window,
+            GLFW_KEY_R
+        ) == GLFW_PRESS)
+        {
+            celdasPintadas.clear();
+
+            esperandoCentro = true;
+            esperandoRadio = false;
+
+            cout << "Circulo reiniciado."
+                << endl;
+
+            glfwWaitEventsTimeout(0.15);
+        }
 
         glClearColor(
             0.05f,
@@ -706,56 +574,54 @@ int main()
             1.0f
         );
 
-
         glClear(
             GL_COLOR_BUFFER_BIT
         );
 
-        // CREAR CUADROS ACTUALES
-
         vector<float> verticesCuadros =
             crearCuadrosPintados();
 
-        // CREAR VAO/VBO PARA LOS CUADROS
-
-        unsigned int VAOCuadros;
-        unsigned int VBOCuadros;
-
-
-        glGenVertexArrays(
-            1,
-            &VAOCuadros
+        glUseProgram(
+            shaderProgram
         );
 
-        glGenBuffers(
-            1,
-            &VBOCuadros
-        );
-
-
-        glBindVertexArray(
-            VAOCuadros
-        );
-
-
-        glBindBuffer(
-            GL_ARRAY_BUFFER,
-            VBOCuadros
-        );
-
+        int colorLocation =
+            glGetUniformLocation(
+                shaderProgram,
+                "color"
+            );
 
         if (!verticesCuadros.empty())
         {
-            glBufferData(
-                GL_ARRAY_BUFFER,
-                verticesCuadros.size()
-                * sizeof(float),
+            unsigned int VAOCuadros;
+            unsigned int VBOCuadros;
 
-                verticesCuadros.data(),
-
-                GL_DYNAMIC_DRAW
+            glGenVertexArrays(
+                1,
+                &VAOCuadros
             );
 
+            glGenBuffers(
+                1,
+                &VBOCuadros
+            );
+
+            glBindVertexArray(
+                VAOCuadros
+            );
+
+            glBindBuffer(
+                GL_ARRAY_BUFFER,
+                VBOCuadros
+            );
+
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                verticesCuadros.size() *
+                sizeof(float),
+                verticesCuadros.data(),
+                GL_DYNAMIC_DRAW
+            );
 
             glVertexAttribPointer(
                 0,
@@ -766,27 +632,8 @@ int main()
                 (void*)0
             );
 
-
             glEnableVertexAttribArray(0);
-        }
 
-        // USAR SHADER
-
-        glUseProgram(
-            shaderProgram
-        );
-
-
-        int colorLocation =
-            glGetUniformLocation(
-                shaderProgram,
-                "color"
-            );
-
-        // PINTAR CUADROS
-
-        if (!verticesCuadros.empty())
-        {
             glUniform3f(
                 colorLocation,
                 0.1f,
@@ -794,20 +641,22 @@ int main()
                 1.0f
             );
 
-
-            glBindVertexArray(
-                VAOCuadros
-            );
-
-
             glDrawArrays(
                 GL_TRIANGLES,
                 0,
                 verticesCuadros.size() / 2
             );
-        }
 
-        // DIBUJAR GRILLA
+            glDeleteVertexArrays(
+                1,
+                &VAOCuadros
+            );
+
+            glDeleteBuffers(
+                1,
+                &VBOCuadros
+            );
+        }
 
         glUniform3f(
             colorLocation,
@@ -816,11 +665,9 @@ int main()
             1.0f
         );
 
-
         glBindVertexArray(
             VAOGrilla
         );
-
 
         glDrawArrays(
             GL_LINES,
@@ -828,26 +675,10 @@ int main()
             verticesGrilla.size() / 2
         );
 
-        // ACTUALIZAR
-
         glfwSwapBuffers(window);
 
         glfwPollEvents();
-
-        // BORRAR VAO/VBO TEMPORALES
-
-        glDeleteVertexArrays(
-            1,
-            &VAOCuadros
-        );
-
-        glDeleteBuffers(
-            1,
-            &VBOCuadros
-        );
     }
-
-    // LIMPIAR
 
     glDeleteVertexArrays(
         1,
@@ -862,7 +693,6 @@ int main()
     glDeleteProgram(
         shaderProgram
     );
-
 
     glfwTerminate();
 

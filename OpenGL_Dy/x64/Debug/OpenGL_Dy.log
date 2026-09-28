@@ -1,20 +1,5 @@
-﻿  glad.c
-  Main.cpp
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(205,5): error C2144: error de sintaxis: 'int' debe estar precedido de ';'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(205,18): error C2065: 'x1': identificador no declarado
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(205,23): error C2065: 'x0': identificador no declarado
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(206,21): error C2296: '-': no es válido porque el operando izquierdo tiene el tipo 'double (__cdecl *)(double)'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(210,5): error C2059: error de sintaxis: 'if'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(212,5): error C2059: error de sintaxis: 'else'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(217,5): error C2059: error de sintaxis: 'if'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(219,5): error C2059: error de sintaxis: 'else'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(225,5): error C2059: error de sintaxis: 'while'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(226,5): error C2143: error de sintaxis: falta ';' delante de '{'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(226,5): error C2447: '{': falta el encabezado de función (¿lista formal de estilo anterior?)
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(266,1): error C2059: error de sintaxis: '}'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(266,1): error C2143: error de sintaxis: falta ';' delante de '}'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(271,1): error C2143: error de sintaxis: falta ';' delante de '{'
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(271,1): error C2447: '{': falta el encabezado de función (¿lista formal de estilo anterior?)
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(630,9): error C3861: 'crearGrilla': no se encontró el identificador
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(806,40): warning C4267: 'argumento': conversión de 'size_t' a 'GLsizei'; posible pérdida de datos
-C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(828,35): warning C4267: 'argumento': conversión de 'size_t' a 'GLsizei'; posible pérdida de datos
+﻿  Main.cpp
+C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(647,40): warning C4267: 'argumento': conversión de 'size_t' a 'GLsizei'; posible pérdida de datos
+C:\Users\User\source\repos\OpenGL_Dy\Main.cpp(675,35): warning C4267: 'argumento': conversión de 'size_t' a 'GLsizei'; posible pérdida de datos
+glfw3.lib(context.obj) : warning LNK4099: no se encontró PDB 'glfw3.pdb' con 'glfw3.lib(context.obj)' o en 'C:\Users\User\source\repos\OpenGL_Dy\x64\Debug\glfw3.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+  OpenGL_Dy.vcxproj -> C:\Users\User\source\repos\OpenGL_Dy\x64\Debug\OpenGL_Dy.exe
